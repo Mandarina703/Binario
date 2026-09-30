@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traductor de Binario, Hexadecimal y ASCII</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            bg: '#0f172a',
+                            card: '#1e293b',
+                            accent: '#06b6d4',
+                            purple: '#8b5cf6',
+                            pink: '#ec4899',
+                            emerald: '#10b981'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .font-mono {
+            font-family: 'Fira Code', monospace;
+        }
+        /* Glassmorphism effects */
+        .glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glass-light {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col transition-colors duration-300">
+
+    <!-- Header Navbar -->
+    <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-gradient-to-tr from-cyan-500 to-purple-600 rounded-xl shadow-lg shadow-cyan-500/20">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg sm:text-xl bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                        CodeTranslate Studio
+                    </h1>
+                    <p class="text-xs text-slate-400 hidden sm:block">Conversor de Binario, Hex, RGB y ASCII</p>
+                </div>
+            </div>
+
+            <!-- Dark / Light Theme Toggle & Info -->
+            <div class="flex items-center gap-2 sm:gap-4">
+                <button id="themeToggleBtn" onclick="toggleTheme()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all border border-slate-700" title="Cambiar Tema">
+                    <svg id="themeMoonIcon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                    </svg>
+                    <svg id="themeSunIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-6">
+
+        <!-- Navigation Tabs -->
+        <div class="flex flex-wrap justify-center sm:justify-start gap-2 border-b border-slate-800 pb-4">
+            <button id="tabBinDec" onclick="switchTab('binDec')" class="tab-btn px-4 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2 transition-all bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path>
+                </svg>
+                Binario ↔ Decimal
+            </button>
+            <button id="tabHexColor" onclick="switchTab('hexColor')" class="tab-btn px-4 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2 transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
+                </svg>
+                Hexadecimal ↔ Color
+            </button>
+            <button id="tabAscii" onclick="switchTab('ascii')" class="tab-btn px-4 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2 transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path>
+                </svg>
+                Texto ↔ ASCII ↔ Binario
+            </button>
+        </div>
+
+        <!-- Notification Toast -->
+        <div id="toast" class="fixed bottom-6 right-6 translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-3 px-4 py-3 bg-emerald-500 text-slate-950 font-semibold rounded-xl shadow-2xl">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span id="toastMsg">Copiado al portapapeles</span>
+        </div>
+
+        <!-- MODE 1: BINARY <-> DECIMAL -->
+        <section id="secBinDec" class="tab-content block space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Binary Input Box -->
+                <div class="glass p-6 rounded-2xl flex flex-col gap-4 border border-slate-700/50">
+                    <div class="flex justify-between items-center">
+                        <label for="binInput" class="font-semibold text-cyan-400 flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+                            Código Binario
+                        </label>
+                        <button onclick="copyText('binInput')" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center gap-1 transition-colors border border-slate-700">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            Copiar
+                        </button>
+                    </div>
+                    <div class="relative">
+                        <textarea id="binInput" rows="4" oninput="convertBinToDec()" placeholder="Ej. 101010" class="w-full bg-slate-950/60 border border-slate-700 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-xl p-3.5 font-mono text-lg text-cyan-300 resize-none outline-none transition-all"></textarea>
+                        <div id="binError" class="text-xs text-rose-400 mt-1 hidden flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            Solo se permiten 0s, 1s y espacios.
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2 pt-2">
+                        <button onclick="presetBin('1010')" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400">1010 (10)</button>
+                        <button onclick="presetBin('11111111')" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400">11111111 (255)</button>
+                        <button onclick="presetBin('10000000000')" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400">10000000000 (1024)</button>
+                        <button onclick="clearBinDec()" class="text-xs px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 ml-auto">Limpiar</button>
+                    </div>
+                </div>
+
+                <!-- Decimal Input Box -->
+                <div class="glass p-6 rounded-2xl flex flex-col gap-4 border border-slate-700/50">
+                    <div class="flex justify-between items-center">
+                        <label for="decInput" class="font-semibold text-purple-400 flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
+                            Número Decimal
+                        </label>
+                        <button onclick="copyText('decInput')" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center gap-1 transition-colors border border-slate-700">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            Copiar
+                        </button>
+                    </div>
+                    <div class="relative">
+                        <textarea id="decInput" rows="4" oninput="convertDecToBin()" placeholder="Ej. 42" class="w-full bg-slate-950/60 border border-slate-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl p-3.5 font-mono text-lg text-purple-300 resize-none outline-none transition-all"></textarea>
+                        <div id="decError" class="text-xs text-rose-400 mt-1 hidden flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            Introduce un número entero no negativo válido.
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2 pt-2">
+                        <button onclick="presetDec('42')" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400">42</button>
+                        <button onclick="presetDec('255')" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400">255</button>
+                        <button onclick="presetDec('1024')" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400">1024</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step-by-Step Breakdown -->
+            <div class="glass p-6 rounded-2xl border border-slate-700/50">
+                <h3 class="font-semibold text-slate-200 mb-3 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                    Explicación paso a paso
+                </h3>
+                <div id="binDecStepByStep" class="font-mono text-sm text-slate-300 space-y-2 bg-slate-950/40 p-4 rounded-xl border border-slate-800/80 overflow-x-auto">
+                    Ingresa un código binario o número decimal para ver el desglose matemático aquí...
+                </div>
+            </div>
+        </section>
+
+        <!-- MODE 2: HEXADECIMAL <-> COLOR -->
+        <section id="secHexColor" class="tab-content hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Color Visual Preview Box -->
+                <div class="lg:col-span-1 glass p-6 rounded-2xl flex flex-col items-center justify-between border border-slate-700/50 gap-6">
+                    <div class="w-full text-center">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Vista Previa de Color</span>
+                        <div id="colorDisplay" class="w-full h-44 rounded-xl shadow-2xl mt-3 flex items-center justify-center transition-all duration-300 relative overflow-hidden border border-white/20" style="background-color: #06b6d4;">
+                            <span id="colorBadge" class="px-3 py-1.5 rounded-lg bg-slate-950/60 backdrop-blur-md font-mono text-sm font-bold text-white border border-white/10">
+                                #06B6D4
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Color Picker -->
+                    <div class="w-full flex items-center justify-between bg-slate-950/50 p-3 rounded-xl border border-slate-800">
+                        <span class="text-sm text-slate-300 font-medium flex items-center gap-2">
+                            <svg class="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
+                            Selector visual:
+                        </span>
+                        <input type="color" id="nativeColorPicker" value="#06b6d4" oninput="onColorPickerChange(this.value)" class="w-10 h-10 rounded-lg cursor-pointer bg-transparent border-0 p-0">
+                    </div>
+                </div>
+
+                <!-- Input Codes & Conversion Grid -->
+                <div class="lg:col-span-2 glass p-6 rounded-2xl border border-slate-700/50 flex flex-col gap-5">
+                    <h3 class="font-semibold text-pink-400 flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-pink-400"></span>
+                        Valores del Color en Diversos Formatos
+                    </h3>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Hex Input -->
+                        <div class="bg-slate-950/50 p-3.5 rounded-xl border border-slate-800">
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="hexInput" class="text-xs font-semibold text-slate-400">HEXADECIMAL</label>
+                                <button onclick="copyText('hexInput')" class="text-[10px] px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">Copiar</button>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-mono text-slate-500 font-bold">#</span>
+                                <input type="text" id="hexInput" value="06B6D4" maxlength="6" oninput="onHexInputChange(this.value)" class="w-full bg-transparent font-mono text-lg font-semibold text-pink-400 outline-none uppercase">
+                            </div>
+                        </div>
+
+                        <!-- RGB Output/Input -->
+                        <div class="bg-slate-950/50 p-3.5 rounded-xl border border-slate-800">
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="rgbInput" class="text-xs font-semibold text-slate-400">RGB (0-255, 0-255, 0-255)</label>
+                                <button onclick="copyText('rgbInput')" class="text-[10px] px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">Copiar</button>
+                            </div>
+                            <input type="text" id="rgbInput" value="rgb(6, 182, 212)" oninput="onRgbInputChange(this.value)" class="w-full bg-transparent font-mono text-lg font-semibold text-cyan-400 outline-none">
+                        </div>
+
+                        <!-- Binary Color Representation -->
+                        <div class="bg-slate-950/50 p-3.5 rounded-xl border border-slate-800 sm:col-span-2">
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="colorBinInput" class="text-xs font-semibold text-slate-400">BINARIO (24-bit R-G-B)</label>
+                                <button onclick="copyText('colorBinInput')" class="text-[10px] px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">Copiar</button>
+                            </div>
+                            <input type="text" id="colorBinInput" value="00000110 10110110 11010100" oninput="onColorBinInputChange(this.value)" class="w-full bg-transparent font-mono text-sm sm:text-base font-semibold text-emerald-400 outline-none">
+                        </div>
+
+                        <!-- HSL Output -->
+                        <div class="bg-slate-950/50 p-3.5 rounded-xl border border-slate-800 sm:col-span-2">
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="hslOutput" class="text-xs font-semibold text-slate-400">HSL (Tono, Saturación, Luminosidad)</label>
+                                <button onclick="copyText('hslOutput')" class="text-[10px] px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">Copiar</button>
+                            </div>
+                            <input type="text" id="hslOutput" readonly value="hsl(189, 95%, 43%)" class="w-full bg-transparent font-mono text-base text-purple-300 outline-none">
+                        </div>
+                    </div>
+
+                    <!-- Preset Palette Buttons -->
+                    <div class="pt-2">
+                        <span class="text-xs text-slate-400 block mb-2 font-medium">Paleta rápida de colores de prueba:</span>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="applyColor('#FF5733')" class="w-7 h-7 rounded-full bg-[#FF5733] border border-white/20 hover:scale-110 transition-transform" title="#FF5733"></button>
+                            <button onclick="applyColor('#10B981')" class="w-7 h-7 rounded-full bg-[#10B981] border border-white/20 hover:scale-110 transition-transform" title="#10B981"></button>
+                            <button onclick="applyColor('#8B5CF6')" class="w-7 h-7 rounded-full bg-[#8B5CF6] border border-white/20 hover:scale-110 transition-transform" title="#8B5CF6"></button>
+                            <button onclick="applyColor('#F59E0B')" class="w-7 h-7 rounded-full bg-[#F59E0B] border border-white/20 hover:scale-110 transition-transform" title="#F59E0B"></button>
+                            <button onclick="applyColor('#EC4899')" class="w-7 h-7 rounded-full bg-[#EC4899] border border-white/20 hover:scale-110 transition-transform" title="#EC4899"></button>
+                            <button onclick="applyColor('#000000')" class="w-7 h-7 rounded-full bg-[#000000] border border-white/20 hover:scale-110 transition-transform" title="#000000"></button>
+                            <button onclick="applyColor('#FFFFFF')" class="w-7 h-7 rounded-full bg-[#FFFFFF] border border-white/20 hover:scale-110 transition-transform" title="#FFFFFF"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Color Breakdown Explanation -->
+            <div class="glass p-6 rounded-2xl border border-slate-700/50">
+                <h3 class="font-semibold text-slate-200 mb-3 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Descomposición del Color
+                </h3>
+                <div id="colorBreakdown" class="font-mono text-sm text-slate-300 space-y-2 bg-slate-950/40 p-4 rounded-xl border border-slate-800/80 overflow-x-auto">
+                    <!-- Dynamic breakdown content -->
+                </div>
+            </div>
+        </section>
+
+        <!-- MODE 3: TEXT <-> ASCII <-> BINARY -->
+        <section id="secAscii" class="tab-content hidden space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Text Input -->
+                <div class="glass p-5 rounded-2xl flex flex-col gap-3 border border-slate-700/50">
+                    <div class="flex justify-between items-center">
+                        <label for="textInput" class="font-semibold text-emerald-400 text-sm flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                            Texto (Caracteres)
+                        </label>
+                        <button onclick="copyText('textInput')" class="text-xs px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">Copiar</button>
+                    </div>
+                    <textarea id="textInput" rows="5" oninput="convertFromText()" placeholder="Escribe un texto aquí... ej. Hola" class="w-full bg-slate-950/60 border border-slate-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl p-3 font-mono text-base text-emerald-300 resize-none outline-none transition-all"></textarea>
+                </div>
+
+                <!-- ASCII Decimal Input/Output -->
+                <div class="glass p-5 rounded-2xl flex flex-col gap-3 border border-slate-700/50">
+                    <div class="flex justify-between items-center">
+                        <label for="asciiDecInput" class="font-semibold text-cyan-400 text-sm flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+                            Código ASCII (Decimales)
+                        </label>
+                        <button onclick="copyText('asciiDecInput')" class="text-xs px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">Copiar</button>
+                    </div>
+                    <textarea id="asciiDecInput" rows="5" oninput="convertFromAsciiDec()" placeholder="Ej. 72 111 108 97" class="w-full bg-slate-950/60 border border-slate-700 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-xl p-3 font-mono text-base text-cyan-300 resize-none outline-none transition-all"></textarea>
+                </div>
+
+                <!-- Binary ASCII Input/Output -->
+                <div class="glass p-5 rounded-2xl flex flex-col gap-3 border border-slate-700/50">
+                    <div class="flex justify-between items-center">
+                        <label for="asciiBinInput" class="font-semibold text-purple-400 text-sm flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
+                            Binario (8 bits por letra)
+                        </label>
+                        <button onclick="copyText('asciiBinInput')" class="text-xs px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">Copiar</button>
+                    </div>
+                    <textarea id="asciiBinInput" rows="5" oninput="convertFromAsciiBin()" placeholder="Ej. 01001000 01101111..." class="w-full bg-slate-950/60 border border-slate-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl p-3 font-mono text-xs sm:text-sm text-purple-300 resize-none outline-none transition-all"></textarea>
+                </div>
+            </div>
+
+            <!-- Quick Text Presets -->
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="text-xs text-slate-400 font-medium">Ejemplos rápidos:</span>
+                <button onclick="presetText('Hola')" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300">"Hola"</button>
+                <button onclick="presetText('SOS')" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300">"SOS"</button>
+                <button onclick="presetText('Code 2026')" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300">"Code 2026"</button>
+                <button onclick="clearTextMode()" class="text-xs px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 ml-auto">Limpiar todo</button>
+            </div>
+
+            <!-- Character by Character Detailed Table -->
+            <div class="glass p-6 rounded-2xl border border-slate-700/50">
+                <h3 class="font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                    Desglose Carácter por Carácter
+                </h3>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left font-mono text-sm">
+                        <thead>
+                            <tr class="border-b border-slate-700/80 text-xs uppercase tracking-wider text-slate-400 bg-slate-950/40">
+                                <th class="p-3 rounded-tl-lg">Carácter</th>
+                                <th class="p-3">ASCII (Decimal)</th>
+                                <th class="p-3">ASCII (Hex)</th>
+                                <th class="p-3 rounded-tr-lg">Binario (8-bit)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="asciiBreakdownTable" class="divide-y divide-slate-800/60">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 py-6 bg-slate-950/50 text-center text-xs text-slate-500">
+        <p>CodeTranslate Studio &copy; 2026 — Herramienta interactiva de aprendizaje de sistemas de numeración.</p>
+    </footer>
+
+    <script>
+        // --- GLOBAL STATE & UTILS ---
+        let currentTab = 'binDec';
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            toastMsg.innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2500);
+        }
+
+        function copyText(elementId) {
+            const el = document.getElementById(elementId);
+            if (!el || !el.value) return;
+            
+            // Clipboard fallback as specified
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(el.value).then(() => {
+                    showToast('Copiado al portapapeles');
+                }).catch(() => {
+                    execCopy(el);
+                });
+            } else {
+                execCopy(el);
+            }
+        }
+
+        function execCopy(el) {
+            el.select();
+            document.execCommand('copy');
+            showToast('Copiado al portapapeles');
+        }
+
+        // Theme Toggle Logic
+        function toggleTheme() {
+            const html = document.documentElement;
+            const moon = document.getElementById('themeMoonIcon');
+            const sun = document.getElementById('themeSunIcon');
+            
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                html.classList.add('light');
+                document.body.classList.replace('bg-slate-900', 'bg-slate-100');
+                document.body.classList.replace('text-slate-100', 'text-slate-900');
+                moon.classList.remove('hidden');
+                sun.classList.add('hidden');
+            } else {
+                html.classList.remove('light');
+                html.classList.add('dark');
+                document.body.classList.replace('bg-slate-100', 'bg-slate-900');
+                document.body.classList.replace('text-slate-900', 'text-slate-100');
+                sun.classList.remove('hidden');
+                moon.classList.add('hidden');
+            }
+        }
+
+        // Tab Switching
+        function switchTab(tab) {
+            currentTab = tab;
+            const tabs = ['binDec', 'hexColor', 'ascii'];
+            
+            tabs.forEach(t => {
+                const sec = document.getElementById('sec' + t.charAt(0).toUpperCase() + t.slice(1));
+                const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
+                
+                if (t === tab) {
+                    sec.classList.remove('hidden');
+                    sec.classList.add('block');
+                    btn.className = "tab-btn px-4 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2 transition-all bg-cyan-500/20 text-cyan-400 border border-cyan-500/30";
+                } else {
+                    sec.classList.add('hidden');
+                    sec.classList.remove('block');
+                    btn.className = "tab-btn px-4 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2 transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent";
+                }
+            });
+        }
+
+        // ==========================================
+        // 1. BINARY <-> DECIMAL LOGIC
+        // ==========================================
+        function convertBinToDec() {
+            const binVal = document.getElementById('binInput').value.trim();
+            const decInput = document.getElementById('decInput');
+            const binError = document.getElementById('binError');
+            const stepDiv = document.getElementById('binDecStepByStep');
+
+            if (!binVal) {
+                decInput.value = '';
+                binError.classList.add('hidden');
+                stepDiv.innerHTML = 'Ingresa un código binario o número decimal para ver el desglose matemático aquí...';
+                return;
+            }
+
+            // Check if valid binary (only 0 and 1, optional spaces)
+            const cleanBin = binVal.replace(/\s+/g, '');
+            if (!/^[01]+$/.test(cleanBin)) {
+                binError.classList.remove('hidden');
+                decInput.value = '';
+                stepDiv.innerHTML = '<span class="text-rose-400">Error: El código binario contiene caracteres no válidos. Usa solo 0 y 1.</span>';
+                return;
+            }
+
+            binError.classList.add('hidden');
+            const decVal = parseInt(cleanBin, 2);
+            decInput.value = decVal.toString();
+
+            // Build Step-by-Step Breakdown
+            let stepsHTML = `<div class="mb-2 font-semibold text-cyan-400">Conversión de Binario (${cleanBin}) a Decimal:</div>`;
+            let terms = [];
+            let totalCalc = 0;
+            const len = cleanBin.length;
+
+            for (let i = 0; i < len; i++) {
+                const bit = cleanBin[i];
+                const power = len - 1 - i;
+                const val = parseInt(bit) * Math.pow(2, power);
+                totalCalc += val;
+                
+                if (bit === '1') {
+                    terms.push(`<span class="text-emerald-400 font-bold">(1 × 2<sup>${power}</sup>)</span>`);
+                } else {
+                    terms.push(`<span class="text-slate-500">(0 × 2<sup>${power}</sup>)</span>`);
+                }
+            }
+
+            stepsHTML += `<p class="leading-relaxed">${terms.join(' + ')}</p>`;
+            stepsHTML += `<p class="mt-2 text-purple-300 font-semibold">= ${totalCalc} en Base 10 (Decimal)</p>`;
+            stepDiv.innerHTML = stepsHTML;
+        }
+
+        function convertDecToBin() {
+            const decVal = document.getElementById('decInput').value.trim();
+            const binInput = document.getElementById('binInput');
+            const decError = document.getElementById('decError');
+            const stepDiv = document.getElementById('binDecStepByStep');
+
+            if (!decVal) {
+                binInput.value = '';
+                decError.classList.add('hidden');
+                stepDiv.innerHTML = 'Ingresa un código binario o número decimal para ver el desglose matemático aquí...';
+                return;
+            }
+
+            if (!/^\d+$/.test(decVal)) {
+                decError.classList.remove('hidden');
+                binInput.value = '';
+                stepDiv.innerHTML = '<span class="text-rose-400">Error: Solo se permiten números enteros positivos.</span>';
+                return;
+            }
+
+            decError.classList.add('hidden');
+            let num = parseInt(decVal, 10);
+            if (isNaN(num)) return;
+
+            const binVal = num.toString(2);
+            binInput.value = binVal;
+
+            // Build Step-by-Step Division Breakdown
+            let stepsHTML = `<div class="mb-2 font-semibold text-purple-400">Conversión de Decimal (${num}) a Binario (Divisiones sucesivas por 2):</div>`;
+            if (num === 0) {
+                stepsHTML += `<p>0 ÷ 2 = 0 (Residuo: <strong class="text-cyan-400">0</strong>)</p>`;
+            } else {
+                let temp = num;
+                let remainders = [];
+                stepsHTML += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-1 text-xs">`;
+                while (temp > 0) {
+                    let rem = temp % 2;
+                    remainders.unshift(rem);
+                    stepsHTML += `<div>${temp} ÷ 2 = ${Math.floor(temp / 2)} <span class="text-cyan-300">(Residuo: <strong class="text-emerald-400">${rem}</strong>)</span></div>`;
+                    temp = Math.floor(temp / 2);
+                }
+                stepsHTML += `</div>`;
+                stepsHTML += `<p class="mt-2 text-cyan-300">Leyendo residuos de abajo hacia arriba: <strong class="text-emerald-400 font-mono text-base">${remainders.join('')}</strong></p>`;
+            }
+            stepDiv.innerHTML = stepsHTML;
+        }
+
+        function presetBin(val) {
+            document.getElementById('binInput').value = val;
+            convertBinToDec();
+        }
+
+        function presetDec(val) {
+            document.getElementById('decInput').value = val;
+            convertDecToBin();
+        }
+
+        function clearBinDec() {
+            document.getElementById('binInput').value = '';
+            document.getElementById('decInput').value = '';
+            document.getElementById('binError').classList.add('hidden');
+            document.getElementById('decError').classList.add('hidden');
+            document.getElementById('binDecStepByStep').innerHTML = 'Ingresa un código binario o número decimal para ver el desglose matemático aquí...';
+        }
+
+        // ==========================================
+        // 2. HEXADECIMAL <-> COLOR LOGIC
+        // ==========================================
+        function updateColorUI(r, g, b) {
+            // Clamp RGB values
+            r = Math.max(0, Math.min(255, r));
+            g = Math.max(0, Math.min(255, g));
+            b = Math.max(0, Math.min(255, b));
+
+            const hexR = r.toString(16).padStart(2, '0').toUpperCase();
+            const hexG = g.toString(16).padStart(2, '0').toUpperCase();
+            const hexB = b.toString(16).padStart(2, '0').toUpperCase();
+            const hexCode = `#${hexR}${hexG}${hexB}`;
+
+            // Update Input fields without triggering infinite loops
+            document.getElementById('hexInput').value = `${hexR}${hexG}${hexB}`;
+            document.getElementById('rgbInput').value = `rgb(${r}, ${g}, ${b})`;
+            document.getElementById('nativeColorPicker').value = hexCode;
+
+            // Binary representation for 24-bit RGB
+            const binR = r.toString(2).padStart(8, '0');
+            const binG = g.toString(2).padStart(8, '0');
+            const binB = b.toString(2).padStart(8, '0');
+            document.getElementById('colorBinInput').value = `${binR} ${binG} ${binB}`;
+
+            // HSL Calculation
+            const hslStr = rgbToHslStr(r, g, b);
+            document.getElementById('hslOutput').value = hslStr;
+
+            // Display elements
+            const colorDisplay = document.getElementById('colorDisplay');
+            const colorBadge = document.getElementById('colorBadge');
+            colorDisplay.style.backgroundColor = hexCode;
+            colorBadge.innerText = hexCode;
+
+            // Update explanation breakdown
+            const colorBreakdown = document.getElementById('colorBreakdown');
+            colorBreakdown.innerHTML = `
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20">
+                        <span class="text-rose-400 font-bold block text-xs">ROJO (R):</span>
+                        <div class="text-base">HEX: <strong>${hexR}</strong></div>
+                        <div class="text-xs text-slate-400">DEC: ${r}</div>
+                        <div class="text-xs font-mono text-emerald-400">BIN: ${binR}</div>
+                    </div>
+                    <div class="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                        <span class="text-emerald-400 font-bold block text-xs">VERDE (G):</span>
+                        <div class="text-base">HEX: <strong>${hexG}</strong></div>
+                        <div class="text-xs text-slate-400">DEC: ${g}</div>
+                        <div class="text-xs font-mono text-emerald-400">BIN: ${binG}</div>
+                    </div>
+                    <div class="p-2.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20">
+                        <span class="text-cyan-400 font-bold block text-xs">AZUL (B):</span>
+                        <div class="text-base">HEX: <strong>${hexB}</strong></div>
+                        <div class="text-xs text-slate-400">DEC: ${b}</div>
+                        <div class="text-xs font-mono text-emerald-400">BIN: ${binB}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function onColorPickerChange(hex) {
+            const r = parseInt(hex.substr(1, 2), 16);
+            const g = parseInt(hex.substr(3, 2), 16);
+            const b = parseInt(hex.substr(5, 2), 16);
+            updateColorUI(r, g, b);
+        }
+
+        function onHexInputChange(val) {
+            let clean = val.replace(/[^0-9A-Fa-f]/g, '');
+            if (clean.length === 6) {
+                const r = parseInt(clean.substr(0, 2), 16);
+                const g = parseInt(clean.substr(2, 2), 16);
+                const b = parseInt(clean.substr(4, 2), 16);
+                updateColorUI(r, g, b);
+            }
+        }
+
+        function onRgbInputChange(val) {
+            const matches = val.match(/\d+/g);
+            if (matches && matches.length >= 3) {
+                const r = parseInt(matches[0], 10);
+                const g = parseInt(matches[1], 10);
+                const b = parseInt(matches[2], 10);
+                updateColorUI(r, g, b);
+            }
+        }
+
+        function onColorBinInputChange(val) {
+            const clean = val.replace(/[^01]/g, '');
+            if (clean.length >= 24) {
+                const r = parseInt(clean.substr(0, 8), 2);
+                const g = parseInt(clean.substr(8, 8), 2);
+                const b = parseInt(clean.substr(16, 8), 2);
+                updateColorUI(r, g, b);
+            }
+        }
+
+        function applyColor(hex) {
+            onColorPickerChange(hex);
+        }
+
+        function rgbToHslStr(r, g, b) {
+            r /= 255; g /= 255; b /= 255;
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+
+            if (max === min) {
+                h = s = 0; // achromatic
+            } else {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    case b: h = (r - g) / d + 4; break;
+                }
+                h /= 6;
+            }
+            return `hsl(${Math.round(h * 360)}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%)`;
+        }
+
+        // ==========================================
+        // 3. TEXT <-> ASCII <-> BINARY LOGIC
+        // ==========================================
+        function convertFromText() {
+            const text = document.getElementById('textInput').value;
+            const asciiDecArr = [];
+            const asciiBinArr = [];
+            const tableBody = document.getElementById('asciiBreakdownTable');
+
+            tableBody.innerHTML = '';
+
+            if (!text) {
+                document.getElementById('asciiDecInput').value = '';
+                document.getElementById('asciiBinInput').value = '';
+                return;
+            }
+
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const code = text.charCodeAt(i);
+                const bin = code.toString(2).padStart(8, '0');
+                const hex = code.toString(16).toUpperCase().padStart(2, '0');
+
+                asciiDecArr.push(code);
+                asciiBinArr.push(bin);
+
+                // Add row to breakdown table
+                const row = document.createElement('tr');
+                row.className = "hover:bg-slate-800/40 transition-colors";
+                const displayChar = char === ' ' ? '<span class="text-slate-500 italic">[Espacio]</span>' : char;
+                row.innerHTML = `
+                    <td class="p-3 font-bold text-emerald-400">${displayChar}</td>
+                    <td class="p-3 text-cyan-300">${code}</td>
+                    <td class="p-3 text-pink-300">0x${hex}</td>
+                    <td class="p-3 text-purple-300 font-mono">${bin}</td>
+                `;
+                tableBody.appendChild(row);
+            }
+
+            document.getElementById('asciiDecInput').value = asciiDecArr.join(' ');
+            document.getElementById('asciiBinInput').value = asciiBinArr.join(' ');
+        }
+
+        function convertFromAsciiDec() {
+            const val = document.getElementById('asciiDecInput').value.trim();
+            if (!val) {
+                document.getElementById('textInput').value = '';
+                document.getElementById('asciiBinInput').value = '';
+                document.getElementById('asciiBreakdownTable').innerHTML = '';
+                return;
+            }
+
+            const decArray = val.split(/\s+/);
+            let text = '';
+            for (let dec of decArray) {
+                const num = parseInt(dec, 10);
+                if (!isNaN(num)) {
+                    text += String.fromCharCode(num);
+                }
+            }
+            document.getElementById('textInput').value = text;
+            convertFromText();
+        }
+
+        function convertFromAsciiBin() {
+            const val = document.getElementById('asciiBinInput').value.trim();
+            if (!val) {
+                document.getElementById('textInput').value = '';
+                document.getElementById('asciiDecInput').value = '';
+                document.getElementById('asciiBreakdownTable').innerHTML = '';
+                return;
+            }
+
+            const binArray = val.split(/\s+/);
+            let text = '';
+            for (let bin of binArray) {
+                const cleanBin = bin.replace(/[^01]/g, '');
+                if (cleanBin) {
+                    const num = parseInt(cleanBin, 2);
+                    if (!isNaN(num)) {
+                        text += String.fromCharCode(num);
+                    }
+                }
+            }
+            document.getElementById('textInput').value = text;
+            convertFromText();
+        }
+
+        function presetText(txt) {
+            document.getElementById('textInput').value = txt;
+            convertFromText();
+        }
+
+        function clearTextMode() {
+            document.getElementById('textInput').value = '';
+            document.getElementById('asciiDecInput').value = '';
+            document.getElementById('asciiBinInput').value = '';
+            document.getElementById('asciiBreakdownTable').innerHTML = '';
+        }
+
+        // INITIALIZATION ON LOAD
+        window.onload = function() {
+            // Initial default trigger for Bin/Dec
+            presetBin('101010');
+            // Initial default trigger for Hex/Color
+            updateColorUI(6, 182, 212);
+            // Initial default trigger for Text/ASCII
+            presetText('Hola');
+        };
+    </script>
+</body>
+</html>
